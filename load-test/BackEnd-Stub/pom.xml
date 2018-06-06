@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com</groupId>
-	<artifactId>iso-test-standalone-server</artifactId>
+	<artifactId>standalone-service-stub</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0</version>
-	<name>ISO standalone test server</name>
+	<name>ISO standalone-service-stub</name>
 	<url>http://www.ca.com/</url>
 
 	<properties>
@@ -55,7 +55,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>com.telappoint.notification.MainClass</mainClass>
+							<mainClass>com.TCPMServer</mainClass>
 							<classpathPrefix>dependency-jars/</classpathPrefix>
 						</manifest>
 					</archive>

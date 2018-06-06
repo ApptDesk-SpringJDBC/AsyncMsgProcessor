@@ -12,14 +12,6 @@ fi
 #cd `dirname $0`/..
 
 # defining some variables
-ISO_JAR="iso-jars"
-
-# generating the proper classpath
-echo "Generating classpath ..."
-
-CLASSPATH=$ISO_JAR/iso-test-standalone-server-1.0.jar
-
-export CLASSPATH
-echo $CLASSPATH
-
-java -classpath $CLASSPATH com.TCSMServer $@
+ISO_JAR="iso-jar"
+CLASSPATH=$ISO_JAR/standalone-service-stub-1.0.jar
+java -jar $CLASSPATH $@ 
