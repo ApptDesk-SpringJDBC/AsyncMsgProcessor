@@ -3,18 +3,16 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jdk.version>${env.JDK_VERSION}</jdk.version>
-		<asyncmessageproc.name>${env.ASYNCMSGPROC_NAME}</asyncmessageproc.name>
-		<asyncmessageproc.version>${env.ASYNCMSGPROC_VERSION}</asyncmessageproc.version>
 	</properties>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.arcot</groupId>
 	<artifactId>asyncmessageprocessor</artifactId>
-	<version>${asyncmessageproc.version}</version>
-	<name>asyncmessageprocessor</name>
+	<version>1.0.0</version>
+	<name>AsyncMsgProcessor</name>
 	<packaging>war</packaging>
 
 	<build>
+	       <finalName>AsyncMsgProcessor</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -34,9 +32,7 @@
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
-
 					<outputDirectory>/${basedir}/target</outputDirectory>
-
 					<packagingExcludes>WEB-INF/classes/*.json</packagingExcludes>
 					<archive>
 						<addMavenDescriptor>false</addMavenDescriptor>
@@ -48,8 +44,6 @@
 							<Build-Time>${maven.build.timestamp}</Build-Time>
 						</manifestEntries>
 					</archive>
-					<warName>${asyncmessageproc.name}</warName>
-					<!--<warName>${asyncmessageproc.name}-${asyncmessageproc.version}</warName>-->
 				</configuration>
 
 			</plugin>
