@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<script src= "js/angular.min.js"></script>
+<link rel="stylesheet" href = "css/bootstrap.min.css">
+   <head>
+      <title>Context parameters</title>
+
+      <style>
+         table, th , td {
+            border: 1px solid grey;
+            border-collapse: collapse;
+            padding: 5px;
+         }
+
+         table tr:nth-child(odd) {
+            background-color: #f2f2f2;
+         }
+
+         table tr:nth-child(even) {
+            background-color: #ffffff;
+         }
+      </style>
+
+   </head>
+   <body>
+      <h2>ISO Back-ends Detail</h2>
+      <div ng-app="myApp" ng-controller="serversCtrl"> 
+			<form name = "isoBackendForm">
+			<button class="btn btn-success" ng-hide="updateRefreshHide" ng-disabled = "{{isDisabled}}" ng-click="addRow()">Add Server</button>
+				 <table>
+					<p style = "color:red">{{backendRsp}}</p>
+					<tr>
+					   <th style="width: 10%">Host</th>
+					   <th style="width: 10%">Port No</th>
+					   <th style="width: 10%">Connection TimeOut (in milliSec)</th>
+					   <th style="width: 10%">Read TimeOut (in milliSec)</th>
+					   <th style="width: 10%">Thread TimeOut (in milliSec)</th>
+					   <th style="width: 5%">Retry</th>
+					   <th style="width: 7%">Log Level</th>
+					   <th style="width: 7%">Echo Time Interval (in minut)</th>
+					   <th style="width: 5%">UID Format</th>
+					   <th ng-hide="{{isDisabled}}" style="width: 15%">Reconnect/Stop Backend</th>
+					   <th ng-hide="{{isDisabled}}" style="width: 11%">Update/Save Backend</th>
+					</tr>
+					<form name = "isoBackendForm">
+					<tr ng-repeat = "server in servers">
+					<!--<td> <button data-ng-click="removeRow($index)">Remove row</button></td>-->
+					   <td><input name = "host" type = "text" style="width: 100%" ng-model = "server.host" required ng-trim="true"></td>
+					   <td><input name = "port" type = "number" style="width: 100%" ng-model = "server.port" ng-maxlength=6 length = "6" required></td>
+					   <td><input name = "connTimeOut" type = "number" style="width: 100%" ng-model = "server.connTimeOut" length = "6" required></td>
+					   <td><input name = "readTimeOut" type = "number" style="width: 100%" ng-model = "server.readTimeOut" length = "6" required></td>
+					   <td><input name = "threadTimeOut" type = "number" style="width: 100%" ng-model = "server.threadTimeOut" length = "6" required></td>
+					   <td><input name = "retry" type = "number" style="width: 100%" ng-model = "server.retry" length = "2" required></td>
+					   <td><select ng-model="server.logLevel" ng-options="option.id as option.name for option in data.availableOptions" selected={{availableOptions.defaultOption}}></select></td>
+					   <td><input name = "echoTimeInterval" type = "number" style="width: 100%" ng-model = "server.echoTimeInterval" length = "6" required></td>
+					   <td align="center">{{ server.uidFormat }}</td>					   
+					   <td ng-hide="{{isDisabled}}"align="center"><button class="btn btn-success" ng-hide="updateRefreshHide" ng-disabled = "{{isDisabled}}" ng-click="refreshBackend(server)">Reconnect</button>&nbsp;&nbsp;<button class="btn btn-success" ng-hide="updateRefreshHide" ng-disabled = "{{isDisabled}}" ng-click="stopBackend(server)">Stop</button></td>
+					   <td ng-hide="{{isDisabled}}" align="center"><button class="btn btn-success" ng-hide="updateRefreshHide" ng-disabled = "{{isDisabled}}" ng-click="updateBackend(server)">Update</button>&nbsp;&nbsp;<button class="btn btn-success" ng-hide="hideSaveEnabled" ng-disabled = "{{hideSaveEnabled}}" ng-click="saveBackend(server)">Save</button></td>					   
+					</tr>
+					</form>
+				 </table>
+				 
+		  
+      </div>
+
+      <script>
+      	 var app = angular.module('myApp', []);
+      	 app.controller('serversCtrl', function($scope, $http, $location, $window) {
+		 $http.get("getjsonFile")
+		 .success(function (response) {$scope.servers = response.serverConfig;});
+			var remoteHostName = $location.host();
+			var remoteHostIP = $location.port();
+			var disableFlag = true
+			var updateSaveHide = true;
+				if(	remoteHostName == null || remoteHostIP == null ||
+					( ! (remoteHostName=="localhost" || remoteHostName=="127.0.0.1"
+						|| remoteHostName=="0:0:0:0:0:0:0:1")))
+				{
+					disableFlag = false;
+					updateSaveHide = false;
+				}else{
+					disableFlag = false;
+					updateSaveHide = false;
+				}
+		$scope.updateRefreshHide = updateSaveHide;
+		$scope.isDisabled = disableFlag;
+		$scope.refreshBackend = function (server) {		
+			$http.get("refreshISOBackend",{params:{"host": server.host, "port": server.port}})
+		 .success(function (refreshResponse) {$scope.backendRsp = refreshResponse;});
+			};
+			
+		$scope.stopBackend = function (server) {		
+			$http.get("stopISOBackend",{params:{"host": server.host, "port": server.port}})
+		 .success(function (stopResponse) {$scope.backendRsp = stopResponse;});
+			};
+			
+		$scope.updateBackend = function (server) {	
+			$http.get("updateBackendParams",{params:{"host": server.host, "port": server.port, "connTimeOut": server.connTimeOut, "readTimeOut": server.readTimeOut, "threadTimeOut": server.threadTimeOut, "retry": server.retry, "logLevel": server.logLevel,"echoTimeInterval": server.echoTimeInterval}})
+		 .success(function (updateResponse) {$window.alert($scope.backendRsp = updateResponse);if($scope.backendRsp == "ISO Backend Parameters are updated successfully"){$window.location.reload();}});		 
+			};
+			
+		$scope.saveBackend = function (server) {
+		$http.get("saveNewBackend",{params:{"host": server.host, "port": server.port, "connTimeOut": server.connTimeOut, "readTimeOut": server.readTimeOut, "threadTimeOut": server.threadTimeOut, "retry": server.retry, "logLevel": server.logLevel,"echoTimeInterval": server.echoTimeInterval}})
+		 .success(function (saveResponse) {$window.alert($scope.backendRsp = saveResponse);if($scope.backendRsp == "ISO Backend saved successfully"){$window.location.reload();}});			
+			};
+			
+		$scope.data = {
+			availableOptions: [
+			  {id: 'INFO', name: 'INFO'},
+			  {id: 'DEBUG', name: 'DEBUG'},
+			  {id: 'TRACE', name: 'TRACE'}
+			],defaultOption: {id: 'INFO', name: 'INFO'}
+		};
+		
+	    $scope.example = {
+			word: /^\s*\w*\s*$/
+		};
+		$scope.hideSaveEnabled = true;		
+		  //add a row in the array
+		$scope.addRow = function(){		
+			$scope.hideSaveEnabled = false;
+			$scope.updateRefreshHide = true;
+			var newrow = [];
+					 
+			if ($scope.servers.length === 0) {
+				newrow = [{'host':'','port':'','connTimeOut':'','readTimeOut':'','threadTimeOut':'','retry':'','logLevel':'INFO','echoTimeInterval':'','uidFormat':'11,2'}];
+			} else {
+					$scope.servers.forEach(function (row) {
+					  newrow = ({'host':'','port':'','connTimeOut':'','readTimeOut':'','threadTimeOut':'','retry':'','logLevel':'INFO','echoTimeInterval':'','uidFormat':'11,2'});
+					});
+				  }
+				$scope.servers.push(newrow);
+		  };	
+		// remove the selected row
+		/*$scope.removeRow = function(index){
+	    // remove the row specified in index
+			$scope.servers.splice( index, 1);
+			// if no rows left in the array create a blank array
+			if ($scope.servers.length() === 0){
+			  $scope.servers = [];
+			}
+		};*/
+		
+	 
+	 });
+
+      </script>
+   </body>
+</html>
