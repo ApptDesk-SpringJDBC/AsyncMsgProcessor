@@ -1,11 +1,8 @@
 package com.ca.asynchmsg.messageprocessor.iso;
 
 import javax.naming.TimeLimitExceededException;
-
 import org.apache.log4j.Logger;
-
 import com.ca.asynchmsg.container.ServerContainer;
-import com.ca.asynchmsg.initializer.ATMSwitchTCPHandler;
 import com.ca.asynchmsg.message.Message;
 import com.ca.asynchmsg.messageprocessor.MessageProcessor;
 import com.ca.asynchmsg.store.MessageStorage;
@@ -32,7 +29,7 @@ public class ISOMessageProcessor implements MessageProcessor {
 	 * deliverMessageToThirdParty(ServerContainer, Message) : Persist the message object by calling persistMessage().
 	 * @param serverHandle : The serverContainer object of a specific connection
 	 */
-	public void deliverMessageToThirdParty(ServerContainer serverHandle, Message msg) throws Exception{
+	public void deliverMessageToThirdParty(Message msg) throws Exception{
 		persistMessage(serverHandle.getReqStore(), msg);
 
 	}
@@ -51,33 +48,20 @@ public class ISOMessageProcessor implements MessageProcessor {
 	 * @param serverHandle : The serverContainer object of a specific connection
 	 * @return Returns the response of a request.
 	 */
-	public Message retrieveMessageFromThirdParty(ServerContainer serverHandle, Message msg) throws Exception{
+	public Message retrieveMessageFromThirdParty(Message msg) throws Exception{
 		long now=System.currentTimeMillis();
 		int timeout = serverHandle.getConnectionHandle().getThreadTimeOut();
 		Message respMessage = null;
 		ISORespMessageStore isoRespStore = (ISORespMessageStore) serverHandle.getRespStore();
 		try{	
-			while(true){
-				respMessage = isoRespStore.retreiveMessage(msg.getMessageUID());
-				if(respMessage ==null){
-					if(now+timeout <= System.currentTimeMillis()){
-						throw new TimeLimitExceededException();
-					}else{
-						Thread.sleep(timeout/10);
-						continue;
-					}
-				}else{
-					break;
-				}
-			}	
-		}catch(TimeLimitExceededException e){
-			logger.warn("Client thread got Timed out...............");
-			if(!isoRespStore.deleteMessage(msg)){
-				int setSize = isoRespStore.addToUnprocessedSet(msg.getMessageUID().getUID());
-				if(setSize>0)
-					ATMSwitchTCPHandler.logger.info("UnprocessedSet has "+setSize+" number of elements....");
-				logger.warn("( unProcessedMsgSet, addToUnprocessedSet( "+msg.getMessageUID().getMaskedUID()+" ) ) Store Size [ "+setSize+" ] Response Not Recieved....");
+			respMessage = isoRespStore.retreiveMessage(msg.getMessageUID());
+			if(respMessage == null) {
+				if(now+timeout <= System.currentTimeMillis()){
+					throw new TimeLimitExceededException();
+				} 
 			}
+		}catch(TimeLimitExceededException e){
+			logger.warn("Client thread got Timed out; Now it will not be processed even if response arrives.");
 		}
 		return respMessage;
 	}

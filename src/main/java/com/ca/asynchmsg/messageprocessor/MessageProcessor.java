@@ -1,6 +1,5 @@
 package com.ca.asynchmsg.messageprocessor;
 
-import com.ca.asynchmsg.container.ServerContainer;
 import com.ca.asynchmsg.message.Message;
 import com.ca.asynchmsg.store.MessageStorage;
 
@@ -14,7 +13,7 @@ import com.ca.asynchmsg.store.MessageStorage;
  * 3. Retrieve the response to the message from the back end 
  */
 public interface MessageProcessor {
-	public void deliverMessageToThirdParty(ServerContainer serverHandle,Message msg) throws Exception;
+	public void deliverMessageToThirdParty(Message msg) throws Exception;
 	public void persistMessage(MessageStorage store, Message msg) throws Exception;
-	public Message retrieveMessageFromThirdParty(ServerContainer serverHandle,Message msg) throws Exception;
+	public Message retrieveMessageFromThirdParty(Message msg) throws Exception;
 }

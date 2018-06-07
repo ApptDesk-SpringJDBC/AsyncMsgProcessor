@@ -17,7 +17,6 @@ public class MessageFieldUIDGenerator implements MessageUIDGenerator{
 	private int[] ISOMsgFields;
 	private Set<Integer> maskedFields = new HashSet<Integer>(Arrays.asList(2));
 	
-	
 	MessageFieldUIDGenerator(int[] fields){
 		ISOMsgFields = fields;
 	}
@@ -29,31 +28,25 @@ public class MessageFieldUIDGenerator implements MessageUIDGenerator{
 	/**
 	 * generateMessageUID(ISOMsg) : Generates MessageUID.
 	 */
-	@Override
 	public MessageUID generateMessageUID(ISOMsg isoMsg) throws Exception {
 		MessageUID messageUID = new MessageUID();
-		
-		String uidString = "";
-		String maskedUid = "";
+		StringBuilder uidString = new StringBuilder("");
+		StringBuilder maskedUid = new StringBuilder("");
+		String fieldData = null;
 		for (int i = 0; i < ISOMsgFields.length; i++) {
-			
 			int fldNo = ISOMsgFields[i];
 			if (isoMsg.hasField(fldNo)) {
-				
-				String fieldData = isoMsg.getString(fldNo);
-				uidString = uidString + fieldData;
-				
-				String maskedString = getMaskedString(fieldData, fldNo);
-				maskedUid = maskedUid + maskedString;
+				fieldData = isoMsg.getString(fldNo);
+				uidString.append(fieldData);
+				maskedUid.append(getMaskedString(fieldData, fldNo));
 			} else {
 				throw new Exception("Exception occured while generating MessageUID. Field Number : "+ fldNo+ " not found");
 			}
 
 		}
-		messageUID.setUID(uidString);
-		messageUID.setMaskedUID(maskedUid);
+		messageUID.setUID(uidString.toString());
+		messageUID.setMaskedUID(maskedUid.toString());
 		return messageUID;
-
 	}
 	
 	/**
@@ -68,7 +61,7 @@ public class MessageFieldUIDGenerator implements MessageUIDGenerator{
 		if(isMasked(fieldNo)) {
 			if(fieldNo == 2) {
 				int len = plainData.length();
-				StringBuffer sb = new StringBuffer();
+				StringBuilder sb = new StringBuilder();
 				for(int i =0;i<=len-4;i++){
 					sb.append("X");
 				}

@@ -1,13 +1,10 @@
-/**
- * 
- */
 package com.ca.asynchmsg.workers;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.SocketException;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.jpos.iso.ISOException;
@@ -35,7 +32,8 @@ public class MessageReceiverThread extends Thread{
 	private Logger logger;
 	private boolean stopRequested = false;
 	private MessageUIDGenerator messageUIDGenerator;
-	
+	private Map<String, Object> lockMap;
+
 	/**
 	 * MessageReceiverThread : A parameterized Constructor
 	 * @param connBean : ConnectionBean object that holds connection related parameters
@@ -43,11 +41,12 @@ public class MessageReceiverThread extends Thread{
 	 * @param logger : the Logger for a specific connection.
 	 * @param messageUIDGenerator : {@link MessageUIDGenerator}
 	 */
-	public MessageReceiverThread(ConnectionBean connBean, MessageStorage isoRespStore, Logger logger, MessageUIDGenerator messageUIDGenerator){
+	public MessageReceiverThread(ConnectionBean connBean, MessageStorage isoRespStore, Logger logger, MessageUIDGenerator messageUIDGenerator,Map<String, Object> lockMap){
 		this.connBean = connBean;
 		this.respStore = (ISORespMessageStore) isoRespStore;
 		this.logger = logger;
 		this.messageUIDGenerator = messageUIDGenerator;
+		this.lockMap = lockMap;
 	}
 
 	@Override
@@ -55,38 +54,52 @@ public class MessageReceiverThread extends Thread{
 		logger.info("started MessageReceiverThread....");
 		
 		Message respMessage = null;
-		while (!stopRequested) {
-			try {
-				String response = receiveData();
-				if (response != null && !"".equals(response)) {
-					MessageUID messageUID = new MessageUID();
-					ISOMsg res = new ISOMsg();
-					//res.setPackager(new ISO87APackager());
-					res.setPackager(new CAISO87APackager(messageUIDGenerator));
-					res.unpack(response.getBytes());
-					if ("0810".equals(res.getMTI())) {
-						String messageUIDStr = res.getString(11);
-						messageUID.setMaskedUID(messageUIDStr);
-						messageUID.setUID(messageUIDStr);
-					} else {
-						messageUID = messageUIDGenerator.generateMessageUID(res);
-					}
-					respMessage = new Message(response, messageUID);
-					if (!respStore.unProcessedMsgSet.contains(messageUID.getUID())) {
+		DataInputStream din =null;
+		Object lock = null; 
+		try {
+			din = new DataInputStream(connBean.getSocket().getInputStream());
+			String response = null;
+			ISOMsg res = new ISOMsg();
+			CAISO87APackager caISO87Packager = new CAISO87APackager(messageUIDGenerator);
+			res.setPackager(caISO87Packager);
+			while (!stopRequested) {
+				try {										
+					response = receiveData(din);
+					MessageUID messageUID = null;
+					if (response != null && !"".equals(response)) {
+						res.unpack(response.getBytes());
+						if ("0810".equals(res.getMTI())) {
+							String messageUIDStr = res.getString(11);
+							messageUID = new MessageUID();	
+							messageUID.setMaskedUID(messageUIDStr);
+							messageUID.setUID(messageUIDStr);
+						} else {
+							messageUID = messageUIDGenerator.generateMessageUID(res);
+						}
+						respMessage = new Message(response, messageUID);
 						respStore.storeMessage(respMessage);
-					} else {
-						respStore.unProcessedMsgSet.remove(messageUID.getUID());
-						logger.warn("The Message whose messageUID is [ "
+						lock = lockMap.get(messageUID.getUID());
+						if(lock != null) {
+							synchronized (lock) {	
+								lock.notify();
+							}
+						}else{
+							logger.warn("The Message whose messageUID is [ "
 								+ messageUID.getMaskedUID()
-								+ " ] arrived late and will not be stored in isoRespStoreMap because it was already got timed out....");
+								+ " ] arrived late and will not be processed because it was already got timed out....");
+						}
+					}else{
+						Thread.sleep(500);
 					}
-				}
-			} catch (ISOException e) {
-				logger.error(" run() ISOException ", e);
-			} catch (Exception e) {
-				logger.error(" run() Exception ", e);
-				continue;
-			}
+				} catch (ISOException e) {
+					logger.error(" run() ISOException ", e);
+				} catch (Exception e) {
+					logger.error(" run() Exception ", e);
+					continue;
+				} 
+			} 
+		} catch (IOException e1) {
+			logger.error(" MessageReceiverThread.run():IOException" +e1);
 		}
 	}
 	
@@ -94,15 +107,11 @@ public class MessageReceiverThread extends Thread{
 	 * will only return the message contents; not the first two bytes coming in from the server
 	 * @return Returns the Response received by this function.
 	 */
-	private String receiveData(){
-		InputStream in = null;
+	private String receiveData(DataInputStream din){
     	String resp = null;
-    	DataInputStream din = null;
     	byte byteOne = 0;
     	byte byteTwo = 0;
     	try {
-			in = connBean.getSocket().getInputStream();
-			din = new DataInputStream(in);
 			if (din.available() > 0){
 				 byteOne = din.readByte();
 				 byteTwo = din.readByte();

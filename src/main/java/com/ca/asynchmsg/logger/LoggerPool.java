@@ -1,5 +1,6 @@
 package com.ca.asynchmsg.logger;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
@@ -16,7 +17,7 @@ import org.apache.log4j.Logger;
  */
 public class LoggerPool{
 	
-	private static ConcurrentHashMap<String, Logger> LOGGER_MAP = 
+	private static Map<String, Logger> LOGGER_MAP = 
 			new ConcurrentHashMap<String, Logger>();
 	/**
 	 * Default constructor

@@ -50,8 +50,7 @@
 			out.write("ISOMSGREQ IS NULL");
 			return;
 		}
-		ATMSwitchTCPHandler tcpHandler = new ATMSwitchTCPHandler();
-		String responseVal = tcpHandler.processRequest(host+"_"+port,isoReq);
+		String responseVal = ATMSwitchTCPHandler.processRequest(host+"_"+port,isoReq);
 
 		if(responseVal == null){
 			out.write("Exception: Response Null");

@@ -8,7 +8,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.Date;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.log4j.Level;
@@ -46,9 +48,10 @@ public class ServerContainer{
 	private MessageProcessor messageProcessor;
 	private Logger logger;
 	private MessageUIDGenerator messageUIDGenerator;
-	public MessageSenderThread senderThread;
-	public MessageReceiverThread receiverThread;
-	public Thread networkThread;
+	private MessageSenderThread senderThread;
+	private MessageReceiverThread receiverThread;
+	private Thread networkThread;
+	private Map<String, Object> lockMap = new ConcurrentHashMap<String,Object>();
 	
 	public ServerContainer(ConnectionBean connBean, String logFileLocation, Level level, MessageUIDGenerator messageGenerator) throws Exception{
 		this.connBean = connBean;
@@ -116,6 +119,7 @@ public class ServerContainer{
 			if(reconnect){
 				logger.warn("( connect() ) Recycling the Connection....");
 				ConnectionPool.recycleConnection(connBean.getUniqueName(), this);
+				isConnectSuccessful = true;
 			}else{ 
 				isConnectSuccessful = startThreads();
 			}
@@ -181,7 +185,7 @@ public class ServerContainer{
 	}
 	
 	private void startRespHandler(){
-		this.receiverThread = new MessageReceiverThread(connBean, isoRespStore, logger, messageUIDGenerator);
+		this.receiverThread = new MessageReceiverThread(connBean, isoRespStore, logger, messageUIDGenerator, lockMap);
 		this.receiverThread.setName("Receiver-"+this.receiverThread.getName());
 		this.receiverThread.start();
 	}
@@ -425,5 +429,13 @@ public class ServerContainer{
 				logger.error("( closeResource() ) IOException while closing socket", e);
 			}
 		}
+	}
+
+	public Map<String, Object> getLockMap() {
+		return lockMap;
+	}
+
+	public void setLockMap(Map<String, Object> lockMap) {
+		this.lockMap = lockMap;
 	}
 }

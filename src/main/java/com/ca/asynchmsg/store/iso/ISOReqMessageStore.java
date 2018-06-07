@@ -1,5 +1,6 @@
 package com.ca.asynchmsg.store.iso;
 
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.log4j.Logger;
@@ -17,7 +18,7 @@ import com.ca.asynchmsg.store.MessageStorage;
  */
 public class ISOReqMessageStore implements MessageStorage {
 
-	private ConcurrentLinkedQueue<Message> isoReqStore;
+	private Queue<Message> isoReqStore;
 	private Logger logger;
 	
 	/**
@@ -37,17 +38,20 @@ public class ISOReqMessageStore implements MessageStorage {
 	public int storeMessage(Message msg) {
 		MessageUID messageUID = msg.getMessageUID();
 		//Added if condition to check whether same message already exist in the queue before adding msg to the queue.
+		int size = 0;
 		if (!isoReqStore.contains(msg)){
 			isoReqStore.add(msg);
+			size = isoReqStore.size();
 			if (logger.isTraceEnabled()){
-				logger.trace("( reqStore, storeMessage( "+messageUID.getMaskedUID()+" ) ) Store Size [ "+isoReqStore.size()+" ] Message [ "+msg.getMessageContents()+" ]");
+				logger.trace("( reqStore, storeMessage( "+messageUID.getMaskedUID()+" ) ) Store Size [ "+size+" ] Message [ "+msg.getMessageContents()+" ]");
 			}else if (logger.isDebugEnabled()){
-				logger.debug("( reqStore, storeMessage( "+messageUID.getMaskedUID()+" ) ) Store Size [ "+isoReqStore.size()+" ]");
+				logger.debug("( reqStore, storeMessage( "+messageUID.getMaskedUID()+" ) ) Store Size [ "+size+" ]");
 			}else{}
 		}else{
+			size = isoReqStore.size();
 			// sandy - need to handle this
 		}
-		return isoReqStore.size();
+		return size;
 	}
 
 	/**

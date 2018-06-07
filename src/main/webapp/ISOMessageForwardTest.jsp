@@ -192,9 +192,11 @@ public static String generateRandom(int length) {
 			out.write("PORT IS NULL");
 			return;
 		}
-		MessageUIDGenerator messageUIDGenerator = ConnectionPool.getHandleToContainer(host+"_"+port).getMessageUIDGenerator();
 		ISOMsg res = new ISOMsg();
-		res.setPackager(new CAISO87APackager(messageUIDGenerator));
+		/* MessageUIDGenerator messageUIDGenerator = ConnectionPool.getHandleToContainer(host+"_"+port).getMessageUIDGenerator();		
+		res.setPackager(new CAISO87APackager(messageUIDGenerator)); */
+		
+		res.setPackager (new ISO87APackager());
 
 
 		String requestStr = null;
@@ -212,13 +214,11 @@ public static String generateRandom(int length) {
 			messageReqCn = res.getString(2);
 		}
 
-		ATMSwitchTCPHandler tcpHandler = new ATMSwitchTCPHandler();
-
 		String responseVal = null;
 		String messageResStan = null;
 		String messageResCn = null;
 
-		responseVal = tcpHandler.processRequest(host+"_"+port,requestStr);
+		responseVal = ATMSwitchTCPHandler.processRequest(host+"_"+port,requestStr);
 		if (responseVal == null){
 			out.write("Response Rcvd is NULL");
 			return;

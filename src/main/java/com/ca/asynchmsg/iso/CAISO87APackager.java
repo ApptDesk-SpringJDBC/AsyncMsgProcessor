@@ -19,7 +19,7 @@ import com.ca.asynchmsg.message.MessageUIDGenerator;
  * ISO 8583 v1987 ASCII Packager
  *
  * @author apr@cs.com.uy
- * @version $Id: CAISO87APackager.java,v 1.1 2016/01/07 06:30:19 upara01 Exp $
+ * @version $Id$
  * @see ISOPackager
  * @see ISOBasePackager
  * @see ISOComponent

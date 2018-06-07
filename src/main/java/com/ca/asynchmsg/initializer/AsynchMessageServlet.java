@@ -11,6 +11,7 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.*;
+import java.net.InetAddress;
 
 @WebServlet(urlPatterns = {"/refreshISOBackend","/getjsonFile","/updateBackendParams","/stopISOBackend","/saveNewBackend"})
 public class AsynchMessageServlet extends HttpServlet {
@@ -234,14 +235,14 @@ public class AsynchMessageServlet extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		String remoteHostName = request.getRemoteHost();
 		String remoteHostIP = request.getRemoteAddr();
-		/*if(	remoteHostName == null || remoteHostIP == null ||
-			( ! ( (remoteHostName.equalsIgnoreCase("localhost") || remoteHostName.equalsIgnoreCase("127.0.0.1")
-					|| remoteHostName.equalsIgnoreCase("0:0:0:0:0:0:0:1"))
-			&& (remoteHostIP.equalsIgnoreCase("127.0.0.1") || remoteHostIP.equalsIgnoreCase("0:0:0:0:0:0:0:1")))))
+		String reHostName = InetAddress.getByName(remoteHostIP).getHostName();
+		if(	remoteHostName == null || remoteHostIP == null ||
+			( ! (remoteHostName.equalsIgnoreCase("localhost") || remoteHostName.equalsIgnoreCase("127.0.0.1")
+					|| remoteHostName.equalsIgnoreCase("0:0:0:0:0:0:0:1") || remoteHostName.equalsIgnoreCase("preview5.arcot.com") || reHostName.equalsIgnoreCase("preview5.arcot.com"))))
 		{
 			out.write("You can access this feature only from localhost");
 			return false;
-		}*/
+		}
 
 		if(request.getParameter(serverHostKey)!=null && !"".equals(request.getParameter(serverHostKey))){
 			

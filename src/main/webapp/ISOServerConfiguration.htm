@@ -74,10 +74,10 @@
 			var updateSaveHide = true;
 				if(	remoteHostName == null || remoteHostIP == null ||
 					( ! (remoteHostName=="localhost" || remoteHostName=="127.0.0.1"
-						|| remoteHostName=="0:0:0:0:0:0:0:1")))
+						|| remoteHostName=="0:0:0:0:0:0:0:1" || remoteHostName=="preview5.arcot.com")))
 				{
-					disableFlag = false;
-					updateSaveHide = false;
+					disableFlag = true;
+					updateSaveHide = true;
 				}else{
 					disableFlag = false;
 					updateSaveHide = false;

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.ca.asynchmsg.workers;
 
 import java.io.IOException;
@@ -12,7 +9,6 @@ import org.apache.log4j.Logger;
 import com.ca.asynchmsg.beans.ConnectionBean;
 import com.ca.asynchmsg.connectionset.ConnectionPool;
 import com.ca.asynchmsg.message.Message;
-import com.ca.asynchmsg.message.MessageUID;
 import com.ca.asynchmsg.store.MessageStorage;
 
 /**
@@ -42,21 +38,28 @@ public class MessageSenderThread extends Thread{
 	public void run() {
 		//blank message UID indicates that we just need to peek a Message from the queue 
 		logger.info("started MessageSenderThread....");
-		while(!stopRequested) {
-			MessageUID messageUID = new MessageUID();
-			messageUID.setMaskedUID("");
-			messageUID.setUID("");
-			Message msg = reqStore.retreiveMessage(messageUID);
-			if(msg!=null){
-				writeData(msg);
+		OutputStream os = null;
+		Message msg = null;
+		try {
+			os = connBean.getSocket().getOutputStream();
+ 
+			while(!stopRequested) {
+				msg = reqStore.retreiveMessage(null);
+				if(msg!=null){
+					writeData(msg,os);
+				}else{
+					Thread.sleep(500);
+				}				
 			}
+		}catch (IOException e) {
+			logger.error(" MessageSenderThread.run():IOException" + e);
+		}catch (Exception e) {
+			logger.error(" MessageSenderThread.run():Exception" + e);
 		}
 	}
 	
-	private void writeData(Message msg){
-    	OutputStream os = null;
+	private void writeData(Message msg, OutputStream os){
 		try {
-			os = connBean.getSocket().getOutputStream();
 			String request = msg.getMessageContents();
 			byte[] byteBuffer = new byte[request.length() + 2];
 			int length = request.length();
@@ -92,7 +95,7 @@ public class MessageSenderThread extends Thread{
 			}
     	} catch (IOException e) {
 			logger.error(" writeData( " + msg.getMessageUID().getMaskedUID() + " ) IOException ",e);
-		}			
+		}
     }
 	/**
 	 * requestStop() : Stops the MessageSenderThread{@link MessageSenderThread}
@@ -101,5 +104,4 @@ public class MessageSenderThread extends Thread{
 		logger.info("MessageSenderThread is going to stop....");
 		stopRequested = true;
 	}
-
 }

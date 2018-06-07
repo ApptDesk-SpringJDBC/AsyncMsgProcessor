@@ -1,9 +1,6 @@
 package com.ca.asynchmsg.store.iso;
 
-import java.lang.reflect.Constructor;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 import com.ca.asynchmsg.message.Message;
@@ -17,7 +14,6 @@ import com.ca.asynchmsg.store.MessageStorage;
  */
 public class ISORespMessageStore implements MessageStorage {
 	private Map<String,Message> isoRespStoreMap;
-	public Set<String> unProcessedMsgSet = null;
 	private Logger logger;
 	
 	/**
@@ -26,7 +22,6 @@ public class ISORespMessageStore implements MessageStorage {
 	 */
 	public ISORespMessageStore(Logger logger){
 		isoRespStoreMap = new ConcurrentHashMap<String, Message>();
-		unProcessedMsgSet = new HashSet<String>();
 		this.logger = logger;
 	}
 	/**
@@ -75,7 +70,6 @@ public class ISORespMessageStore implements MessageStorage {
 	 * @param msg : Message will be deleted from response store.
 	 * @return Returns true in case message deleted successfully other wise false
 	 */
-	@Override
 	public boolean deleteMessage(Message msg) {
 		MessageUID messageUID = msg.getMessageUID();
 		
@@ -91,14 +85,5 @@ public class ISORespMessageStore implements MessageStorage {
 			logger.warn("( respStore, deleteMessage( "+messageUID.getMaskedUID()+" ) ) Message Not Found....");
 			return false;
 		}
-	}	
-	/**
-	 * addToUnprocessedSet(msgUID) method adds unprocessed msgUID to UnprocessedSet.
-	 * @param msgUID : msgUID will be added to the unProcessedMsgSet
-	 * @return Returns Size of the unProcessedMsgSet set.
-	 */
-	public int addToUnprocessedSet(String msgUID){
-		unProcessedMsgSet.add(msgUID);		
-		return unProcessedMsgSet.size();	
 	}
 }

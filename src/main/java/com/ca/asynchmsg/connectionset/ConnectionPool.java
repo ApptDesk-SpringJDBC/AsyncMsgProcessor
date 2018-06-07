@@ -1,6 +1,8 @@
 package com.ca.asynchmsg.connectionset;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import com.ca.asynchmsg.container.ServerContainer;
 
 /**
@@ -16,7 +18,7 @@ import com.ca.asynchmsg.container.ServerContainer;
  */
 public class ConnectionPool{
 	
-	private static ConcurrentHashMap<String, ServerContainer> CONN_MAP = 
+	private static Map<String, ServerContainer> CONN_MAP = 
 			new ConcurrentHashMap<String, ServerContainer>();
 	
 	/**
@@ -73,7 +75,7 @@ public class ConnectionPool{
 		}
 	}
 	
-	public static ConcurrentHashMap<String, ServerContainer> getConnectionMap(){
+	public static Map<String, ServerContainer> getConnectionMap(){
 		return CONN_MAP;		
 	}
 	
